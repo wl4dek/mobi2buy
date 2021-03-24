@@ -24,9 +24,11 @@ class TestShortUrlViews(TestCase):
         self.assertEquals(response.status_code, 403)
 
     def test_authenticated_get_list_urls(self):
+        UrlShortened.objects.create(**{"url": "http://teste.com/1"})
+        UrlShortened.objects.create(**{"url": "http://teste.com/2"})
         self.client.force_authenticate(self.user)
         response = self.client.get(reverse("list"))
-        self.assertEquals(len(response.json().get("results")), 1)
+        self.assertEquals(len(response.json().get("results")), 3)
         self.assertDictContainsSubset(
             self.valid_url, response.json().get("results")[0])
 

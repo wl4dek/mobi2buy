@@ -3,6 +3,7 @@ from short_url.models import UrlShortened
 from django.forms.models import model_to_dict
 from django.utils import timezone
 from datetime import timedelta
+from scripts.remove_urls import remove_url
 
 
 class TestModels(TestCase):
@@ -50,3 +51,22 @@ class TestModels(TestCase):
     def test_get_all_urls(self):
         count = UrlShortened.objects.all().count()
         self.assertEquals(count, 1)
+
+    def test_remove_url(self):
+        today = timezone.now()
+
+        UrlShortened.objects.create(**{
+            "url": "http://teste.com",
+            "date_expiration": today - timedelta(1)
+        })
+        UrlShortened.objects.create(**{
+            "url": "http://teste2.com",
+            "date_expiration": today + timedelta(1)
+        })
+
+        self.assertEquals(UrlShortened.objects.count(), 3)
+        remove_url()
+        self.assertEquals(UrlShortened.objects.count(), 2)
+        url = UrlShortened.objects.order_by("date_expiration").first()
+        date_expiration = str(url.date_expiration)
+        self.assertEquals(date_expiration, str(today + timedelta(1)))
